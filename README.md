@@ -203,11 +203,17 @@ The backend broadcasts progress and completion notifications. The frontend uses 
 
 ## Screenshots
 
-Add your dashboard screenshots here.
+### Dashboard
+![Dashboard](docs/dashboard.png)
 
-Example:
+### Dashboard
+![Dashboard](docs/dashboard1.png)
 
-![Trade Dashboard](docs/screenshots/dashboard.png)
+### Pull in Progress
+![Pull Progress](docs/pull-progress.png)
+
+### Pull Completed
+![Pull Completed](docs/pull-completed.png)
 
 ## Configuration
 
@@ -235,6 +241,4 @@ The following environment variables control the pull process:
 - Deploy the application to a cloud environment.
 - Integrate a real financial market data provider.
 
-## Author
 
-Developed as a Software Engineering Technical Assessment.
