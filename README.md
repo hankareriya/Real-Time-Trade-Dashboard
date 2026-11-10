@@ -210,10 +210,10 @@ The backend broadcasts progress and completion notifications. The frontend uses 
 ![Dashboard](docs/dashboard1.png)
 
 ### Pull in Progress
-![Pull Progress](docs/pull-progress.png)
+![Pull Progress](docs/pull_progress.png)
 
 ### Pull Completed
-![Pull Completed](docs/pull-completed.png)
+![Pull Completed](docs/pull_completed.png)
 
 ## Configuration
 
