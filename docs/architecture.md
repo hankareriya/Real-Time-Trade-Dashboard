@@ -328,21 +328,6 @@ The application includes basic error-handling mechanisms:
 
 ---
 
-## 11. Limitations and Future Improvements
-
-The current implementation is designed as a functional assessment prototype.
-
-Possible future improvements include:
-
-- Replace the Mock BSE API with a real authorized trade data provider.
-- Introduce Celery or RQ with Redis for more scalable and durable background job processing.
-- Use asynchronous database operations for improved concurrency.
-- Add authentication and role-based access control.
-- Improve logging, monitoring, and retry mechanisms.
-- Add historical trade analytics and visualizations.
-- Introduce automated testing for API endpoints and ingestion workflows.
-
----
 
 ## 12. Design Summary
 
