@@ -50,18 +50,6 @@ This project demonstrates background trade-data ingestion, batch processing, per
 - MySQL Workbench
 - Git and GitHub
 
-## Architecture
-
-The application follows a frontend-backend architecture.
-
-1. React provides the trade monitoring dashboard.
-2. FastAPI exposes REST endpoints and a WebSocket endpoint.
-3. The background pull service fetches mock trade data in batches.
-4. SQLAlchemy stores the fetched records in MySQL.
-5. WebSockets notify the frontend about pull progress and completion.
-
-See [Architecture Documentation](docs/architecture.md).
-
 ## Project Structure
 
 ```text
@@ -226,19 +214,5 @@ The following environment variables control the pull process:
 | MOCK_API_DELAY_SECONDS | Mock API response delay |
 | MOCK_BSE_API_URL | Mock trade API endpoint |
 
-## Limitations
-
-- Uses synthetic trade data rather than a live stock exchange API.
-- Uses a local MySQL database.
-- Background jobs run within the FastAPI application process.
-- WebSocket notifications are not persisted.
-
-## Future Improvements
-
-- Use Celery and Redis for separate background workers.
-- Add automatic retry handling for failed batches.
-- Implement authentication and authorization.
-- Deploy the application to a cloud environment.
-- Integrate a real financial market data provider.
 
 
