@@ -3,9 +3,19 @@
 
 ## 1. Project Overview
 
-The Real-Time Trade Dashboard is a web-based application that fetches synthetic trade records from a mock BSE API, processes them in batches, stores them in a MySQL database, and displays the records on a React dashboard.
+The Real-Time Trade Dashboard is a web-based application designed to fetch, process, store, and display trade records through an interactive dashboard.
 
-The application uses FastAPI for backend APIs, background processing for data ingestion, SQLAlchemy for database operations, and WebSockets for real-time progress notifications.
+The application simulates an external BSE trade data provider using a Mock BSE API that generates 3,000 synthetic trade records.
+
+The backend retrieves trade records in batches of 100, stores them in a MySQL database, and tracks the progress of each data ingestion job.
+
+The frontend displays trade information and receives real-time progress and completion notifications through WebSocket communication.
+
+The primary objective is to keep the dashboard responsive while large volumes of trade data are fetched and processed in the background.
+
+**Note:** The application uses synthetic trade data and is not connected to the actual BSE trading system.
+
+---
 
 ## 2. Technology Stack
 
@@ -20,7 +30,13 @@ The application uses FastAPI for backend APIs, background processing for data in
 | Data Format | JSON |
 | API Documentation | Swagger UI |
 
+---
+
 ## 3. High-Level Architecture
+
+The application follows a client-server architecture. The React frontend communicates with the FastAPI backend through REST APIs and WebSockets.
+
+The backend interacts with the Mock BSE API to retrieve trade records and uses MySQL for persistent storage.
 
 ```mermaid
 flowchart TB
@@ -45,9 +61,106 @@ flowchart TB
     W -->|"Real-time notifications"| F
 ```
 
-## 4. Main Components
+---
 
-### 4.1 React Frontend
+## 4. Design Decisions – Why This Architecture?
+
+The architecture was designed to keep the application responsive, maintainable, and capable of handling trade data ingestion without blocking user interactions.
+
+Each technology and design decision serves a specific purpose.
+
+### 4.1 React for the Frontend
+
+React was selected because it supports reusable components and dynamic user interfaces.
+
+The dashboard contains interactive elements such as:
+- Trade statistics cards.
+- Search and filtering.
+- Sorting and pagination.
+- Pull progress indicators.
+- Connection status.
+
+React allows the interface to update when new trade data or pull status information becomes available, improving the user experience and maintainability.
+
+### 4.2 FastAPI for the Backend
+
+FastAPI was selected because it provides a lightweight framework for building REST APIs and supports asynchronous operations.
+
+It also provides:
+- Automatic API documentation through Swagger UI.
+- Background task execution.
+- WebSocket support.
+- Request validation.
+
+These features make it suitable for managing API requests, background data ingestion, and real-time communication within the application.
+
+### 4.3 Background Processing for Trade Ingestion
+
+Fetching all trade records directly during a frontend request would require the user to wait until the entire operation finishes.
+
+To avoid this, the application uses background processing.
+
+When the user clicks the Start Pull button:
+1. FastAPI creates a new pull job.
+2. The backend returns the pull job ID immediately.
+3. The background service starts fetching trade records independently.
+4. The frontend remains available while ingestion continues.
+
+This approach improves responsiveness and separates the initiation of a pull job from the actual data processing.
+
+### 4.4 Batch Processing for Data Fetching
+
+Instead of fetching all 3,000 trade records in a single request, the application retrieves records in batches of 100.
+
+Batch processing was selected because it:
+- Reduces the size of individual API responses.
+- Makes data ingestion easier to manage.
+- Allows each batch to be saved independently.
+- Helps preserve previously processed batches if a later batch fails.
+- Makes it easier to track ingestion progress.
+
+It also provides a straightforward way to simulate a longer-running data ingestion process.
+
+### 4.5 MySQL for Persistent Storage
+
+MySQL was selected to store trade records and pull job information persistently.
+
+A relational database provides structured storage and supports querying, sorting, filtering, and pagination.
+
+The application uses separate tables for:
+- Trade records.
+- Pull job information.
+
+A unique constraint on the trade ID helps prevent duplicate records during repeated pulls.
+
+SQLAlchemy is used as the ORM to simplify database operations and model management.
+
+### 4.6 WebSockets for Real-Time Updates
+
+Repeatedly sending HTTP requests to check pull progress would create unnecessary network requests.
+
+WebSockets provide a persistent communication channel between the frontend and backend.
+
+The backend can send notifications when relevant events occur, including:
+- Pull progress.
+- Pull completion.
+- Pull failure.
+
+This allows the dashboard to receive updates without requiring manual page refreshes.
+
+### 4.7 Modular Project Structure
+
+The backend separates API routes, database models, business logic, and WebSocket management into different modules.
+
+This separation of responsibilities makes the code easier to understand, maintain, test, and debug.
+
+For example, the Mock BSE API can be replaced with a real authorized data provider without requiring a complete redesign of the frontend.
+
+---
+
+## 5. Main System Components
+
+### 5.1 React Frontend
 
 The frontend is developed using React and Vite.
 
@@ -58,8 +171,9 @@ Responsibilities:
 - Display pull status and progress.
 - Provide search, filtering, sorting, and pagination.
 - Receive real-time updates through WebSocket communication.
+- Refresh trade data after a successful pull.
 
-### 4.2 FastAPI Backend
+### 5.2 FastAPI Backend
 
 The backend is developed using FastAPI.
 
@@ -71,120 +185,179 @@ Responsibilities:
 - Retrieve trade records and pull status from MySQL.
 - Manage WebSocket connections.
 
-### 4.3 Mock BSE API
+### 5.3 Mock BSE API
 
-The mock BSE API simulates an external trade data provider.
+The Mock BSE API simulates an external trade data provider.
 
 Responsibilities:
 - Generate 3,000 synthetic trade records.
 - Store generated records in a JSON file.
-- Return trade records in batches of 100.
+- Return trade records in batches.
 - Support offset-based pagination.
 - Simulate API response delays.
 
-**Note:** The trade records are synthetic and are not actual BSE market data.
-
-### 4.4 Background Pull Service
+### 5.4 Background Pull Service
 
 The background pull service handles trade ingestion without making the frontend wait for the complete operation.
 
-Workflow:
-1. Receive a newly created pull job.
-2. Fetch trade records from the mock BSE API.
-3. Retrieve records in batches of 100.
-4. Save each batch independently in MySQL.
-5. Skip duplicate trade IDs.
-6. Update the pull job's progress and status.
-7. Send progress and completion notifications through WebSockets.
+Responsibilities:
+- Fetch trade records from the Mock BSE API.
+- Retrieve records in batches of 100.
+- Save each batch independently in MySQL.
+- Skip duplicate trade IDs.
+- Update pull job status and progress.
+- Send progress and completion notifications through WebSockets.
 
-### 4.5 MySQL Database
+### 5.5 MySQL Database
 
-MySQL stores the trade records and pull job information.
+MySQL stores trade records and pull job information.
 
-Main tables:
+**Trades table**
 
-**Trades**
-- id
-- trade_id
-- client
-- symbol
-- quantity
-- price
-- timestamp
+| Column | Purpose |
+|---|---|
+| id | Primary key |
+| trade_id | Unique trade identifier |
+| client | Client associated with the trade |
+| symbol | Trading symbol |
+| quantity | Number of units traded |
+| price | Trade price |
+| timestamp | Trade timestamp |
 
-**Pull Jobs**
-- id
-- status
-- started_at
-- completed_at
-- total_fetched
-- error_message
+**Pull Jobs table**
 
-SQLAlchemy is used to interact with the database.
+| Column | Purpose |
+|---|---|
+| id | Pull job identifier |
+| status | Current job status |
+| started_at | Job start time |
+| completed_at | Job completion time |
+| total_fetched | Number of records fetched |
+| error_message | Error details if the job fails |
 
-### 4.6 WebSocket Communication
+---
 
-The application uses WebSockets for real-time communication between the backend and frontend.
+## 6. Data Flow
 
-Endpoint:
+### 6.1 Trade Data Ingestion Flow
 
-`/ws/trades`
-
-The WebSocket manager maintains active connections and broadcasts events such as:
-- Pull progress
-- Pull completed
-- Pull failed
-
-This allows the dashboard to update without requiring a manual browser refresh.
-
-## 5. Data Flow
-
-### Trade Data Ingestion
-
-1. The user clicks the Start Pull button.
+1. The user clicks the Start Pull button on the React dashboard.
 2. The frontend sends a POST request to `/api/pulls`.
-3. FastAPI creates a pull job and schedules background processing.
-4. The frontend receives the pull job ID and response immediately.
-5. The background service requests trade batches from `/getTrades`.
-6. Each batch is saved independently in MySQL.
-7. The pull job's progress is updated.
-8. Progress notifications are broadcast through WebSockets.
-9. When all batches are processed, the job is marked completed.
-10. The frontend refreshes the trade records and displays the latest information.
+3. FastAPI creates a new pull job in MySQL.
+4. The backend schedules background processing and immediately returns the pull job ID.
+5. The background service sends HTTP requests to the Mock BSE API using HTTPX.
+6. The Mock BSE API returns records in batches of 100.
+7. Each batch is saved independently in MySQL.
+8. Duplicate trade IDs are skipped.
+9. The pull job progress and status are updated.
+10. The backend broadcasts progress notifications through WebSockets.
+11. Once all batches are processed, the job is marked as completed.
+12. The frontend receives the completion notification and refreshes the dashboard.
 
-### Dashboard Data Retrieval
+### 6.2 Dashboard Data Retrieval Flow
 
-1. The frontend requests `/api/trades`.
-2. FastAPI retrieves records from MySQL.
-3. The backend returns trade records in JSON format.
-4. React displays the records in the dashboard.
+1. The React frontend requests `/api/trades`.
+2. FastAPI receives the request.
+3. The backend retrieves stored trade records from MySQL using SQLAlchemy.
+4. The backend returns the records in JSON format.
+5. React displays the records in the dashboard.
 
-## 6. API Endpoints
+### 6.3 Pull Status Retrieval Flow
+
+1. The frontend requests `/api/pulls/{id}`.
+2. FastAPI retrieves the corresponding pull job from MySQL.
+3. The backend returns the current status, start time, completion time, and total fetched records.
+4. The frontend displays the pull job information.
+
+---
+
+## 7. API Endpoints
 
 | Method | Endpoint | Purpose |
 |---|---|---|
 | GET | `/` | Check backend availability |
 | GET | `/getTrades` | Fetch mock trade records |
-| GET | `/api/trades` | Retrieve stored trades |
+| GET | `/api/trades` | Retrieve stored trade records |
 | POST | `/api/pulls` | Start a new background pull |
 | GET | `/api/pulls/{id}` | Retrieve pull job status |
 | WebSocket | `/ws/trades` | Receive real-time notifications |
 
-## 7. Background Processing
+---
+
+## 8. Background Processing and Reliability
 
 Trade ingestion runs as a FastAPI background task.
 
-Instead of fetching all records in a single request, the service retrieves records in smaller batches of 100.
+Instead of fetching all records in one operation, the service retrieves records in smaller batches of 100.
 
-Each batch is saved independently, which helps preserve previously processed data if a later batch fails.
+Each batch is committed independently to the database. This helps preserve previously processed data if a later batch encounters an error.
 
-The pull job status is maintained in the database.
+The pull job status is maintained in MySQL so that the frontend can retrieve the current job information.
 
-## 8. Error Handling and Duplicate Prevention
+Duplicate trade IDs are prevented using a unique database constraint.
 
-- Database operations are handled using SQLAlchemy.
-- Duplicate trade IDs are skipped using the unique constraint on `trade_id`.
+---
+
+## 9. WebSocket Communication
+
+The application uses a WebSocket endpoint:
+
+`/ws/trades`
+
+The WebSocket manager maintains active client connections and broadcasts events from the backend.
+
+The main events include:
+- `pull_progress`
+- `pull_completed`
+- `pull_failed`
+
+These events allow the frontend to respond to changes in the ingestion process without continuously polling the server.
+
+---
+
+## 10. Error Handling
+
+The application includes basic error-handling mechanisms:
+
+- Database operations are handled through SQLAlchemy sessions.
+- Duplicate trade IDs are skipped using the unique constraint.
 - Pull failures are recorded in the pull job's error message.
 - WebSocket connections are removed when clients disconnect.
 - The frontend can reconnect when a WebSocket connection is lost.
+- API errors are returned through appropriate HTTP responses.
 
+---
+
+## 11. Limitations and Future Improvements
+
+The current implementation is designed as a functional assessment prototype.
+
+Possible future improvements include:
+
+- Replace the Mock BSE API with a real authorized trade data provider.
+- Introduce Celery or RQ with Redis for more scalable and durable background job processing.
+- Use asynchronous database operations for improved concurrency.
+- Add authentication and role-based access control.
+- Improve logging, monitoring, and retry mechanisms.
+- Add historical trade analytics and visualizations.
+- Introduce automated testing for API endpoints and ingestion workflows.
+
+---
+
+## 12. Design Summary
+
+The architecture focuses on three main goals:
+
+**1. Responsiveness**
+
+Background processing allows users to continue interacting with the dashboard while trade data is being fetched and stored.
+
+**2. Reliability**
+
+Independent batch commits, database constraints, and pull job tracking help maintain consistent data and provide visibility into ingestion operations.
+
+**3. Real-Time Visibility**
+
+WebSocket notifications keep users informed about the progress and outcome of each pull job without requiring manual refreshes.
+
+Overall, this architecture provides a simple, modular, and maintainable foundation for a real-time trade monitoring application while allowing future scalability improvements.
