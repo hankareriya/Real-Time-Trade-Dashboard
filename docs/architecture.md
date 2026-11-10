@@ -188,11 +188,3 @@ The pull job status is maintained in the database.
 - WebSocket connections are removed when clients disconnect.
 - The frontend can reconnect when a WebSocket connection is lost.
 
-## 9. Limitations and Future Improvements
-
-- Replace the mock BSE API with a real authorized trade data provider.
-- Use a dedicated task queue such as Celery or RQ for scalable background processing.
-- Introduce asynchronous database operations.
-- Add authentication and role-based access control.
-- Improve monitoring, logging, and retry mechanisms.
-- Add historical trade analytics and visualizations.
