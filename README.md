@@ -214,5 +214,9 @@ The following environment variables control the pull process:
 | MOCK_API_DELAY_SECONDS | Mock API response delay |
 | MOCK_BSE_API_URL | Mock trade API endpoint |
 
+## 📄 License
+
+This project is available for educational and portfolio purposes. No formal open-source license has been added yet.
+
 
 
